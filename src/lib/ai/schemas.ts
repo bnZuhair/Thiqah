@@ -5,6 +5,11 @@ export const ExtractRequestSchema = z.object({
     .string()
     .min(1)
     .describe("The user's question or input about the establishment's compliance"),
+  image: z
+    .string()
+    .min(1)
+    .optional()
+    .describe("Base64-encoded data URL (data:image/*;base64,...) of a captured photo of the establishment"),
 });
 
 export const ComplianceAnalysisSchema = z.object({

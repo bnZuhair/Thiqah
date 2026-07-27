@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 const navItems = [
   { href: "/home", icon: "home", label: "الرئيسية" },
-  { href: "/checklist", icon: "assignment_turned_in", label: "الاشتراطات" },
+  { href: "/checklist-grouped", icon: "assignment_turned_in", label: "الاشتراطات" },
   { href: "/audit", icon: "description", label: "التقارير" },
   { href: "/notifications", icon: "notifications", label: "الإشعارات" },
   { href: "/profile", icon: "person", label: "الحساب" },

@@ -24,7 +24,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { message } = parsed.data;
+  const { message, image } = parsed.data;
+
+  const textContent = `المستند المرجعي الذي يجب الاعتماد عليه حصراً:\n\n${context}\n\n---\n\nالاستعلام: ${message}`;
 
   const result = streamObject({
     model: gemini,
@@ -33,7 +35,12 @@ export async function POST(request: NextRequest) {
     messages: [
       {
         role: "user",
-        content: `المستند المرجعي الذي يجب الاعتماد عليه حصراً:\n\n${context}\n\n---\n\nالاستعلام: ${message}`,
+        content: image
+          ? [
+              { type: "text", text: textContent },
+              { type: "file", mediaType: "image/jpeg", data: image },
+            ]
+          : textContent,
       },
     ],
   });

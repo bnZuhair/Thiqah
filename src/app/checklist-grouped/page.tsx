@@ -1,66 +1,47 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { BottomNav } from "@/components/shared/bottom-nav";
 import { Header } from "@/components/shared/header";
 import { CircularProgress } from "@/components/shared/circular-progress";
+import {
+  CHECKLIST_CATEGORIES,
+  CHECKLIST_ITEMS,
+  STATUS_OVERRIDES,
+  getItemsByCategory,
+} from "@/lib/checklist-items";
 
-interface Category {
-  id: string;
-  title: string;
-  icon: string;
-  colorClass: string;
-  iconColorClass: string;
-  progress: number;
-  items: { label: string; status: "compliant" | "violation" | "pending" }[];
+type ItemStatus = "pending" | "compliant" | "violation";
+
+function getStatus(itemId: string): ItemStatus {
+  return STATUS_OVERRIDES[itemId]?.status ?? "pending";
 }
 
-const categories: Category[] = [
-  {
-    id: "attire",
-    title: "لبس الموظفين",
-    icon: "checkroom",
-    colorClass: "bg-primary-fixed",
-    iconColorClass: "text-primary",
-    progress: 90,
-    items: [
-      { label: "نظافة الزي الرسمي", status: "compliant" },
-      { label: "تغطية الرأس", status: "compliant" },
-    ],
-  },
-  {
-    id: "hygiene",
-    title: "النظافة العامة",
-    icon: "cleaning_services",
-    colorClass: "bg-secondary-container",
-    iconColorClass: "text-secondary",
-    progress: 50,
-    items: [
-      { label: "نظافة الأرضيات", status: "violation" },
-      { label: "تراكم النفايات", status: "compliant" },
-    ],
-  },
-  {
-    id: "safety",
-    title: "الأمن والسلامة",
-    icon: "local_fire_department",
-    colorClass: "bg-tertiary-fixed",
-    iconColorClass: "text-tertiary",
-    progress: 20,
-    items: [
-      { label: "صلاحية طفايات الحريق", status: "violation" },
-      { label: "مخارج الطوارئ", status: "violation" },
-    ],
-  },
-];
+const categoriesWithProgress = CHECKLIST_CATEGORIES.map((category) => {
+  const items = getItemsByCategory(category.id);
+  const compliantCount = items.filter((item) => getStatus(item.id) === "compliant").length;
+  const progress = items.length ? Math.round((compliantCount / items.length) * 100) : 0;
+  return { ...category, items, progress };
+});
+
+const overallCompliant = CHECKLIST_ITEMS.filter((item) => getStatus(item.id) === "compliant").length;
+const overallProgress = Math.round((overallCompliant / CHECKLIST_ITEMS.length) * 100);
 
 export default function ChecklistGroupedPage() {
+  const router = useRouter();
   const [openCategory, setOpenCategory] = useState<string | null>(null);
 
   const toggleCategory = (id: string) => {
     setOpenCategory(openCategory === id ? null : id);
   };
+
+  const handleItemClick = (itemId: string) => {
+    router.push(`/camera?item=${itemId}`);
+  };
+
+  const weakestCategory = [...categoriesWithProgress].sort((a, b) => a.progress - b.progress)[0];
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -75,13 +56,16 @@ export default function ChecklistGroupedPage() {
               <div className="flex flex-col gap-1">
                 <span className="text-sm text-on-surface-variant">مطعم البحر</span>
                 <h1 className="text-xl font-semibold text-primary">حالة الالتزام</h1>
-                <div className="mt-2 inline-flex items-center gap-2 bg-tertiary-fixed text-on-tertiary-fixed-variant px-3 py-1 rounded-full">
-                  <span className="material-symbols-outlined text-[18px]">schedule</span>
-                  <span className="text-sm">المهلة المتبقية: 14 يوم</span>
-                </div>
+                <button
+                  onClick={() => router.push("/checklist")}
+                  className="mt-2 inline-flex items-center gap-2 bg-tertiary-fixed text-on-tertiary-fixed-variant px-3 py-1 rounded-full active:scale-95 transition-transform"
+                >
+                  <span className="material-symbols-outlined text-[18px]">list_alt</span>
+                  <span className="text-sm">عرض كقائمة كاملة</span>
+                </button>
               </div>
               <div className="relative w-24 h-24">
-                <CircularProgress value={72} size={96} strokeWidth={8} />
+                <CircularProgress value={overallProgress} size={96} strokeWidth={8} />
               </div>
             </div>
           </div>
@@ -90,10 +74,10 @@ export default function ChecklistGroupedPage() {
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-on-surface">الفئات الرقابية</h2>
-              <span className="text-sm text-on-surface-variant">{categories.length} فئات</span>
+              <span className="text-sm text-on-surface-variant">{categoriesWithProgress.length} فئات</span>
             </div>
 
-            {categories.map((category) => (
+            {categoriesWithProgress.map((category) => (
               <div
                 key={category.id}
                 className="bg-surface-container-lowest rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] overflow-hidden transition-all duration-300"
@@ -153,29 +137,44 @@ export default function ChecklistGroupedPage() {
                     >
                       <div className="px-4 pb-4 flex flex-col gap-2">
                         <div className="h-px bg-surface-variant mb-2" />
-                        {category.items.map((item, index) => (
-                          <div
-                            key={index}
-                            className={`flex items-center justify-between p-3 rounded-lg ${
-                              item.status === "violation"
-                                ? "bg-error-container"
-                                : "bg-surface"
-                            }`}
-                          >
-                            <span className={`text-base ${
-                              item.status === "violation" ? "text-on-error-container" : "text-on-surface"
-                            }`}>
-                              {item.label}
-                            </span>
-                            {item.status === "compliant" ? (
-                              <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
-                                check_circle
-                              </span>
-                            ) : (
-                              <span className="material-symbols-outlined text-error">cancel</span>
-                            )}
-                          </div>
-                        ))}
+                        {category.items.map((item) => {
+                          const status = getStatus(item.id);
+                          return (
+                            <button
+                              key={item.id}
+                              onClick={() => handleItemClick(item.id)}
+                              className={`flex items-center justify-between gap-3 p-3 rounded-lg text-right transition-colors ${
+                                status === "violation"
+                                  ? "bg-error-container"
+                                  : "bg-surface hover:bg-surface-container-low"
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className={`material-symbols-outlined text-[20px] ${
+                                  status === "violation" ? "text-on-error-container" : "text-on-surface-variant"
+                                }`}>
+                                  {item.icon}
+                                </span>
+                                <span className={`text-base ${
+                                  status === "violation" ? "text-on-error-container" : "text-on-surface"
+                                }`}>
+                                  {item.title}
+                                </span>
+                              </div>
+                              {status === "compliant" && (
+                                <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
+                                  check_circle
+                                </span>
+                              )}
+                              {status === "violation" && (
+                                <span className="material-symbols-outlined text-error">cancel</span>
+                              )}
+                              {status === "pending" && (
+                                <span className="material-symbols-outlined text-outline">photo_camera</span>
+                              )}
+                            </button>
+                          );
+                        })}
                       </div>
                     </motion.div>
                   )}
@@ -191,7 +190,7 @@ export default function ChecklistGroupedPage() {
             </div>
             <p className="text-base text-on-surface mb-2">هل تعلم؟</p>
             <p className="text-sm text-on-surface-variant">
-              تحسين فئة &quot;الأمن والسلامة&quot; سيرفع نسبة التزامك الإجمالية إلى 85%.
+              تحسين فئة &quot;{weakestCategory.title}&quot; سيرفع نسبة التزامك الإجمالية.
             </p>
           </div>
         </div>

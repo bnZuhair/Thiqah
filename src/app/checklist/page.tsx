@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { BottomNav } from "@/components/shared/bottom-nav";
 import { Header } from "@/components/shared/header";
 import { ProgressBar } from "@/components/shared/progress-bar";
+import { CHECKLIST_ITEMS, STATUS_OVERRIDES } from "@/lib/checklist-items";
 
 interface ChecklistItem {
   id: string;
@@ -16,38 +17,11 @@ interface ChecklistItem {
   statusText?: string;
 }
 
-const initialItems: ChecklistItem[] = [
-  {
-    id: "1",
-    title: "لافتة المحل مطابقة للاشتراطات",
-    description: "يجب أن تكون اللوحة متوافقة مع الهوية البصرية المعتمدة للنشاط.",
-    icon: "branding_watermark",
-    status: "pending",
-  },
-  {
-    id: "2",
-    title: "توفر طفايات الحريق",
-    description: "يجب توفير طفايات حريق مفعلة وصالحة.",
-    icon: "fire_extinguisher",
-    status: "compliant",
-    statusText: "مكتمل ومطابق",
-  },
-  {
-    id: "3",
-    title: "زي الموظفين نظيف وموحد",
-    description: "يجب أن يرتدي جميع الموظفين الزي الرسمي الموحد.",
-    icon: "checkroom",
-    status: "violation",
-    statusText: "الزي غير موحد - مخالفة رصدت",
-  },
-  {
-    id: "4",
-    title: "توفر شهادة السلامة الغذائية",
-    description: "يجب توفير شهادة السلامة الغذائية سارية المفعول.",
-    icon: "fmd_bad",
-    status: "pending",
-  },
-];
+const initialItems: ChecklistItem[] = CHECKLIST_ITEMS.map((item) => ({
+  ...item,
+  status: STATUS_OVERRIDES[item.id]?.status ?? "pending",
+  statusText: STATUS_OVERRIDES[item.id]?.statusText,
+}));
 
 export default function ChecklistPage() {
   const router = useRouter();
@@ -73,9 +47,13 @@ export default function ChecklistPage() {
                 <span className="text-sm text-on-surface-variant">المتجر: مطعم البحر</span>
                 <h1 className="text-2xl font-bold text-primary">قائمة الاشتراطات</h1>
               </div>
-              <div className="bg-primary-container/20 px-3 py-1 rounded-full">
-                <span className="text-sm text-primary">نسخة 2024</span>
-              </div>
+              <button
+                onClick={() => router.push("/checklist-grouped")}
+                className="flex items-center gap-1 bg-primary-container/20 px-3 py-1 rounded-full active:scale-95 transition-transform"
+              >
+                <span className="material-symbols-outlined text-primary text-[16px]">category</span>
+                <span className="text-sm text-primary">عرض مجمّع</span>
+              </button>
             </div>
 
             <ProgressBar
