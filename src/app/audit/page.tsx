@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { CircularProgress } from "@/components/shared/circular-progress";
+import { BottomNav } from "@/components/shared/bottom-nav";
 
 const violations = [
   {
@@ -42,8 +43,8 @@ export default function AuditPage() {
         </div>
       </header>
 
-      <main className="relative w-full pt-16 bg-background min-h-screen">
-        <div className="flex flex-col w-full gap-8 p-4 pb-12">
+      <main className="relative w-full pt-16 pb-24 bg-background min-h-screen">
+        <div className="flex flex-col w-full gap-8 p-4">
           {/* Hero Score Section */}
           <section className="relative overflow-hidden rounded-xl bg-primary-container p-6 flex flex-col items-center justify-center text-center">
             <div className="absolute inset-0 opacity-10 pointer-events-none">
@@ -149,6 +150,8 @@ export default function AuditPage() {
           </section>
         </div>
       </main>
+
+      <BottomNav />
     </div>
   );
 }
