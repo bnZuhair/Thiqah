@@ -1,10 +1,17 @@
 import { streamObject } from "ai";
 import { NextRequest } from "next/server";
+import { readFileSync } from "fs";
+import { join } from "path";
 import { gemini } from "@/lib/ai/provider";
-import {
-  ExtractRequestSchema,
-  getExtractionSchema,
-} from "@/lib/ai/schemas";
+import { ExtractRequestSchema, ComplianceAnalysisSchema } from "@/lib/ai/schemas";
+
+function loadFile(filename: string): string {
+  const filePath = join(process.cwd(), "prompts", filename);
+  return readFileSync(filePath, "utf-8");
+}
+
+const systemPrompt = loadFile("system_prompt.md");
+const context = loadFile("data/context.md");
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -17,16 +24,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { prompt, data, schema } = parsed.data;
-  const extractionSchema = getExtractionSchema(schema);
+  const { message } = parsed.data;
 
   const result = streamObject({
     model: gemini,
-    schema: extractionSchema,
+    schema: ComplianceAnalysisSchema,
+    system: systemPrompt,
     messages: [
-      { role: "user" as const, content: data },
+      {
+        role: "user",
+        content: `المستند المرجعي الذي يجب الاعتماد عليه حصراً:\n\n${context}\n\n---\n\nالاستعلام: ${message}`,
+      },
     ],
-    system: prompt,
   });
 
   return result.toTextStreamResponse();
