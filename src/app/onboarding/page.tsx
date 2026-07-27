@@ -59,7 +59,7 @@ export default function OnboardingPage() {
       <div className="absolute top-1/2 -right-32 w-80 h-80 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* Skip button */}
-      <div className="flex justify-start px-4 pt-6 z-10 shrink-0">
+      <div className="flex justify-end px-4 pt-6 z-10 shrink-0">
         <button
           onClick={() => { window.location.href = "/home"; }}
           className="text-sm text-primary px-4 py-2 hover:bg-primary/5 transition-colors rounded-full active:scale-95"
