@@ -14,15 +14,22 @@ const slides = [
   },
   {
     id: 2,
-    title: "فحص ذكي وسريع",
-    description: "استخدم كاميرا جوالك للتحقق من المتطلبات والحصول على تقييم فوري.",
-    icon: "document_scanner",
+    title: "الإرشاد والتأسيس",
+    description: "خطوات واضحة تبدأ معك من الصفر لتأسيس نشاطك بما يتوافق مع الأنظمة، ومرجع شامل لجميع اللوائح والاشتراطات في مكان واحد.",
+    icon: "account_balance",
     showLogo: false,
   },
   {
     id: 3,
-    title: "التزامك سر نجاحك",
-    description: "احصل على تقارير تفصيلية ومهلة تصحيحية لضمان سلامة أعمالك.",
+    title: "فحص ذكي وسريع",
+    description: "استخدم كاميرا جوالك للتحقق من المتطلبات والحصول على تقييم فوري. جدولة فحوصاتك الدورية مع نظام تنبيه ذكي للمهلات التصحيحية.",
+    icon: "document_scanner",
+    showLogo: false,
+  },
+  {
+    id: 4,
+    title: "تقارير والالتزام",
+    description: "احصل على تقارير تفصيلية ومهلة تصحيحية لضمان سلامة أعمالك والالتزام المستمر بمعايير الامتثال.",
     icon: "schedule",
     showLogo: false,
   },
@@ -63,39 +70,38 @@ export default function OnboardingPage() {
 
       {/* Carousel */}
       <div className="flex-1 overflow-hidden" ref={emblaRef}>
-        <div className="flex flex-row-reverse h-full">
+        <div className="flex h-full">
           {slides.map((slide) => (
             <div
               key={slide.id}
-              className="flex-none w-full h-full flex flex-col items-center justify-center px-4"
+              className="flex-none w-full h-full flex flex-col items-center justify-center px-6"
             >
-              {/* Logo / Icon */}
-              <div className="relative mb-8">
-                {slide.showLogo ? (
-                  <div className="relative bg-surface-container-lowest p-6 rounded-3xl shadow-xl shadow-primary/5">
-                    <div className="w-32 h-32 flex items-center justify-center">
-                      <span
-                        className="material-symbols-outlined text-primary"
-                        style={{ fontSize: "80px", fontVariationSettings: "'FILL' 1" }}
-                      >
-                        verified
-                      </span>
-                    </div>
-                  </div>
-                ) : (
+              {/* Image placeholder */}
+              {slide.showLogo ? (
+                <div className="relative bg-surface-container-lowest p-6 rounded-3xl shadow-xl shadow-primary/5 mb-6">
                   <div className="w-32 h-32 flex items-center justify-center">
                     <span
                       className="material-symbols-outlined text-primary"
                       style={{ fontSize: "80px", fontVariationSettings: "'FILL' 1" }}
                     >
-                      {slide.icon}
+                      verified
                     </span>
                   </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="w-full max-w-xs aspect-[4/3] rounded-2xl border-2 border-dashed border-outline-variant/50 flex flex-col items-center justify-center gap-3 mb-6 bg-surface-container-low/50">
+                  <span
+                    className="material-symbols-outlined text-outline-variant"
+                    style={{ fontSize: "48px" }}
+                  >
+                    {slide.icon}
+                  </span>
+                  <span className="text-xs text-outline-variant">صورة توضيحية</span>
+                </div>
+              )}
 
               {/* Text content */}
-              <div className="text-center max-w-sm space-y-4">
+              <div className="text-center max-w-sm space-y-3">
                 <h1 className="text-2xl font-bold text-on-surface">
                   {slide.title}
                 </h1>
