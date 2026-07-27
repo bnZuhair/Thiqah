@@ -1,25 +1,19 @@
 import type { Metadata } from "next";
-import { Inter, Tajawal } from "next/font/google";
+import { IBM_Plex_Sans_Arabic } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ui/providers";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const tajawal = Tajawal({
-  subsets: ["arabic"],
-  variable: "--font-tajawal",
-  weight: ["400", "500", "700"],
+const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
+  subsets: ["arabic", "latin"],
+  variable: "--font-ibm-plex",
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "My Starter",
-  description: "Production-ready full-stack starter project",
+  title: "ثقة - منصة الامتثال الحكومي",
+  description: "منصتك الموحدة لضمان التزام منشأتك بالاشتراطات الحكومية",
 };
 
 export default function RootLayout({
@@ -29,11 +23,18 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
-      className={`${inter.variable} ${tajawal.variable}`}
+      lang="ar"
+      dir="rtl"
+      className={ibmPlexSansArabic.variable}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col font-sans antialiased">
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="min-h-full flex flex-col antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
