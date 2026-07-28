@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ThiqahLogo } from "./thiqah-logo";
 
 interface HeaderProps {
@@ -30,11 +31,14 @@ export function Header({ title, showBack, onBack }: HeaderProps) {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors">
+          <Link
+            href="/notifications"
+            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors"
+          >
             <span className="material-symbols-outlined text-on-surface-variant">
               notifications
             </span>
-          </div>
+          </Link>
           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
             <span className="material-symbols-outlined text-on-primary text-[18px]">
               person

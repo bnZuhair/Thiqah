@@ -29,8 +29,21 @@ export interface Owner {
   businesses: Business[];
 }
 
+export type NotificationType = "license" | "violation" | "audit" | "checklist" | "system";
+
+export interface AppNotification {
+  id: string;
+  businessId: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  createdAt: string;
+  isRead: boolean;
+}
+
 const OWNER_STORAGE_KEY = "thiqah-mock-owner";
 const SELECTED_BUSINESS_STORAGE_KEY = "thiqah-selected-business-id";
+const NOTIFICATIONS_STORAGE_KEY = "thiqah-notifications";
 
 function createEmptyChecklistStatuses() {
   return CHECKLIST_ITEMS.reduce<Record<string, ChecklistStatus>>((acc, item) => {
@@ -99,6 +112,113 @@ const initialOwnerData: Owner = {
     },
   ],
 };
+
+const initialNotifications: AppNotification[] = [
+  {
+    id: "n-1",
+    businessId: "business-1",
+    type: "license",
+    title: "اقترب موعد انتهاء الرخصة",
+    message: "رخصة البلدية لمطعم القرموشي ستنتهي خلال 5 أيام. يرجى التجديد لتجنب الغرامات.",
+    createdAt: "قبل ساعتين",
+    isRead: false,
+  },
+  {
+    id: "n-2",
+    businessId: "business-1",
+    type: "violation",
+    title: "مخالفة جديدة: تأخر تحديث شهادة السلامة",
+    message: "الشهادة منتهية الصلاحية منذ 8 أيام، يرجى المعالجة فوراً.",
+    createdAt: "قبل 3 ساعات",
+    isRead: false,
+  },
+  {
+    id: "n-4",
+    businessId: "business-1",
+    type: "violation",
+    title: "مخالفة: عدم وضوح لافتة المحل",
+    message: "اللافتة غير واضحة في الليل وتحتاج مراجعة قبل الغد.",
+    createdAt: "أمس",
+    isRead: true,
+  },
+  {
+    id: "n-5",
+    businessId: "business-1",
+    type: "checklist",
+    title: "تذكير: عنصر رقابي بحاجة لتحديث",
+    message: "يرجى رفع صورة محدثة لمخرج الطوارئ ضمن قائمة الاشتراطات.",
+    createdAt: "قبل 3 أيام",
+    isRead: true,
+  },
+  {
+    id: "n-6",
+    businessId: "business-1",
+    type: "system",
+    title: "انخفاض نسبة الالتزام",
+    message: "انخفضت نسبة التزام مطعم القرموشي إلى 74%. راجع المخالفات الحالية لتحسين التقييم.",
+    createdAt: "قبل 4 أيام",
+    isRead: true,
+  },
+  {
+    id: "n-7",
+    businessId: "business-2",
+    type: "checklist",
+    title: "مخزن المواد يحتاج تصنيف",
+    message: "بعض الصناديق غير موثقة حسب المتطلبات، يرجى استكمال التصنيف خلال 3 أيام.",
+    createdAt: "قبل ساعة",
+    isRead: false,
+  },
+  {
+    id: "n-8",
+    businessId: "business-2",
+    type: "audit",
+    title: "نتائج التدقيق الأخير جاهزة",
+    message: "تقرير التدقيق الذي تم قبل 3 أيام متاح الآن للمراجعة.",
+    createdAt: "قبل 3 أيام",
+    isRead: true,
+  },
+  {
+    id: "n-9",
+    businessId: "business-2",
+    type: "license",
+    title: "تم تجديد شهادة الدفاع المدني",
+    message: "تم تجديد شهادة الدفاع المدني بنجاح، صالحة حتى نهاية العام.",
+    createdAt: "الأسبوع الماضي",
+    isRead: true,
+  },
+  {
+    id: "n-10",
+    businessId: "business-2",
+    type: "system",
+    title: "تحسن ملحوظ في الالتزام",
+    message: "ارتفعت نسبة التزام شاورما الطعم إلى 86%. استمر بالعمل الجيد!",
+    createdAt: "الأسبوع الماضي",
+    isRead: true,
+  },
+];
+
+export function getInitialNotifications(): AppNotification[] {
+  if (typeof window === "undefined") {
+    return initialNotifications;
+  }
+
+  const saved = window.localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
+  if (!saved) {
+    return initialNotifications;
+  }
+
+  try {
+    return JSON.parse(saved) as AppNotification[];
+  } catch {
+    return initialNotifications;
+  }
+}
+
+export function saveNotifications(notifications: AppNotification[]) {
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(notifications));
+  }
+}
 
 export function getInitialOwnerData(): Owner {
   if (typeof window === "undefined") {
