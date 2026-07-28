@@ -107,7 +107,7 @@ const initialOwnerData: Owner = {
       statusLabel: "مقبول",
       complianceScore: 86,
       lastAudit: "قبل 3 أيام",
-      registrationNumber: "4030112233",
+      registrationNumber: "7030112233",
       nationalAddress: "3312 طريق الأمير سلطان، حي الروضة، جدة",
       licenseExpiryDate: "1447/09/10 هـ",
       licenseStatus: "active",
