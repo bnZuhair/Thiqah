@@ -12,6 +12,7 @@ const slides = [
     description: "منصتك الموحدة لضمان التزام منشأتك بالاشتراطات الحكومية بكل سهولة.",
     icon: "verified",
     showLogo: true,
+    imageSrc: null,
   },
   {
     id: 2,
@@ -19,6 +20,7 @@ const slides = [
     description: "خطوات واضحة تبدأ معك من الصفر لتأسيس نشاطك بما يتوافق مع الأنظمة، ومرجع شامل لجميع اللوائح والاشتراطات في مكان واحد.",
     icon: "account_balance",
     showLogo: false,
+    imageSrc: "/onboarding/slide-2.png",
   },
   {
     id: 3,
@@ -26,6 +28,7 @@ const slides = [
     description: "استخدم كاميرا جوالك للتحقق من المتطلبات والحصول على تقييم فوري. جدولة فحوصاتك الدورية مع نظام تنبيه ذكي للمهلات التصحيحية.",
     icon: "document_scanner",
     showLogo: false,
+    imageSrc: "/onboarding/slide-3.png",
   },
   {
     id: 4,
@@ -33,6 +36,7 @@ const slides = [
     description: "احصل على تقارير تفصيلية ومهلة تصحيحية لضمان سلامة أعمالك والالتزام المستمر بمعايير الامتثال.",
     icon: "schedule",
     showLogo: false,
+    imageSrc: "/onboarding/slide-4.png",
   },
 ];
 
@@ -90,6 +94,17 @@ export default function OnboardingPage() {
                       priority
                     />
                   </div>
+                </div>
+              ) : slide.imageSrc ? (
+                <div className="w-full max-w-xs aspect-[4/3] rounded-2xl overflow-hidden mb-6 shadow-lg shadow-primary/10 bg-white">
+                  <Image
+                    src={slide.imageSrc}
+                    alt={slide.title}
+                    width={480}
+                    height={360}
+                    className="w-full h-full object-cover"
+                    priority={slide.id <= 2}
+                  />
                 </div>
               ) : (
                 <div className="w-full max-w-xs aspect-[4/3] rounded-2xl border-2 border-dashed border-outline-variant/50 flex flex-col items-center justify-center gap-3 mb-6 bg-surface-container-low/50">
