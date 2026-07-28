@@ -78,7 +78,14 @@ export default function AuditPage() {
             </div>
             <div className="relative z-10 flex flex-col items-center">
               <div className="relative w-40 h-40 flex items-center justify-center">
-                <CircularProgress value={complianceScore} size={160} strokeWidth={12} />
+                <CircularProgress
+                  value={complianceScore}
+                  size={160}
+                  strokeWidth={12}
+                  trackClassName="text-white/20"
+                  progressClassName="text-on-primary-container"
+                  textClassName="text-white"
+                />
               </div>
               <div className="mt-4 bg-white/10 backdrop-blur-md px-4 py-1 rounded-full">
                 <span className="text-sm text-on-primary">{complianceScore >= 80 ? "حالة جيدة" : "يحتاج تحسين"}</span>

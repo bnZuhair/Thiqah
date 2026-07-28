@@ -8,6 +8,9 @@ interface CircularProgressProps {
   strokeWidth?: number;
   label?: string;
   className?: string;
+  trackClassName?: string;
+  progressClassName?: string;
+  textClassName?: string;
 }
 
 export function CircularProgress({
@@ -16,6 +19,9 @@ export function CircularProgress({
   strokeWidth = 12,
   label,
   className = "",
+  trackClassName = "text-surface-container-high",
+  progressClassName = "text-primary",
+  textClassName = "text-primary",
 }: CircularProgressProps) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -29,7 +35,7 @@ export function CircularProgress({
         height={size}
       >
         <circle
-          className="text-surface-container-high"
+          className={trackClassName}
           cx={size / 2}
           cy={size / 2}
           fill="transparent"
@@ -38,7 +44,7 @@ export function CircularProgress({
           strokeWidth={strokeWidth}
         />
         <motion.circle
-          className="text-primary"
+          className={progressClassName}
           cx={size / 2}
           cy={size / 2}
           fill="transparent"
@@ -53,7 +59,7 @@ export function CircularProgress({
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-bold text-primary">{value}%</span>
+        <span className={`text-3xl font-bold ${textClassName}`}>{value}%</span>
         {label && (
           <span className="text-xs text-on-surface-variant">{label}</span>
         )}
