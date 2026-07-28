@@ -20,6 +20,10 @@ export interface Business {
   lastAudit: string;
   violations: Violation[];
   checklistStatuses: Record<string, ChecklistStatus>;
+  registrationNumber: string;
+  nationalAddress: string;
+  licenseExpiryDate: string;
+  licenseStatus: "active" | "expiring" | "expired";
 }
 
 export interface Owner {
@@ -73,6 +77,10 @@ const initialOwnerData: Owner = {
       statusLabel: "يحتاج تحسين",
       complianceScore: 74,
       lastAudit: "أمس",
+      registrationNumber: "1010445566",
+      nationalAddress: "7433 طريق الملك فهد، حي الصحافة، الرياض",
+      licenseExpiryDate: "1446/05/20 هـ",
+      licenseStatus: "expiring",
       violations: [
         {
           id: "v-1",
@@ -99,6 +107,10 @@ const initialOwnerData: Owner = {
       statusLabel: "مقبول",
       complianceScore: 86,
       lastAudit: "قبل 3 أيام",
+      registrationNumber: "4030112233",
+      nationalAddress: "3312 طريق الأمير سلطان، حي الروضة، جدة",
+      licenseExpiryDate: "1447/09/10 هـ",
+      licenseStatus: "active",
       violations: [
         {
           id: "v-3",
@@ -266,6 +278,10 @@ export function createEmptyBusiness(name: string, category: string, region: stri
     statusLabel: "غير مطابق",
     complianceScore: 0,
     lastAudit: "الآن",
+    registrationNumber: "—",
+    nationalAddress: region,
+    licenseExpiryDate: "—",
+    licenseStatus: "expired",
     violations: [],
     checklistStatuses: createEmptyChecklistStatuses(),
   };
