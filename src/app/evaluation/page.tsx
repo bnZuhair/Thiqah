@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { ComplianceAnalysis } from "@/lib/ai/schemas";
+import { getChecklistItem } from "@/lib/checklist-items";
 
 interface StoredEvaluation {
   image: string;
@@ -111,6 +112,8 @@ function EvaluationContent() {
     );
   }
 
+  const categoryId = getChecklistItem(itemId)?.categoryId;
+
   const { analysis, image } = data;
   const config = STATUS_CONFIG[analysis.complianceStatus];
   const hasViolations = analysis.violations.length > 0;
@@ -216,7 +219,11 @@ function EvaluationContent() {
           {/* Actions */}
           <div className="flex flex-col gap-4 mt-auto pt-4">
             <button
-              onClick={() => router.push("/checklist")}
+              onClick={() =>
+                router.push(
+                  categoryId ? `/checklist-grouped?category=${categoryId}` : "/checklist-grouped"
+                )
+              }
               className="w-full h-14 bg-primary text-on-primary rounded-xl text-lg font-semibold flex items-center justify-center gap-4 shadow-lg active:scale-[0.98] transition-transform"
             >
               <span>التالي</span>

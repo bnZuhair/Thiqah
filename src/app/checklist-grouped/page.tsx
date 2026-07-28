@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { BottomNav } from "@/components/shared/bottom-nav";
 import { Header } from "@/components/shared/header";
@@ -16,9 +16,12 @@ import { getInitialOwnerData, getSelectedBusinessId, type Business, type Owner }
 
 type ItemStatus = "pending" | "compliant" | "violation";
 
-export default function ChecklistGroupedPage() {
+function ChecklistGroupedContent() {
   const router = useRouter();
-  const [openCategory, setOpenCategory] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const [openCategory, setOpenCategory] = useState<string | null>(
+    () => searchParams.get("category")
+  );
   const [owner, setOwner] = useState<Owner | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
 
@@ -233,5 +236,19 @@ export default function ChecklistGroupedPage() {
 
       <BottomNav />
     </div>
+  );
+}
+
+export default function ChecklistGroupedPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen bg-background">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <ChecklistGroupedContent />
+    </Suspense>
   );
 }
