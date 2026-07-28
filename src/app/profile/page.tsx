@@ -43,7 +43,7 @@ export default function ProfilePage() {
             </div>
             <div className="relative flex flex-col items-center py-4">
               <div className="relative w-40 h-40">
-                <CircularProgress value={72} size={160} strokeWidth={8} />
+                <CircularProgress value={72} size={160} strokeWidth={8} showValue={false} />
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-3xl font-bold text-primary leading-none">720</span>
                   <span className="text-xs text-on-surface-variant">من 1000</span>
