@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const slides = [
   {
@@ -78,14 +79,16 @@ export default function OnboardingPage() {
             >
               {/* Image placeholder */}
               {slide.showLogo ? (
-                <div className="relative bg-surface-container-lowest p-6 rounded-3xl shadow-xl shadow-primary/5 mb-6">
+                <div className="relative bg-white p-6 rounded-3xl shadow-xl shadow-primary/5 mb-6">
                   <div className="w-32 h-32 flex items-center justify-center">
-                    <span
-                      className="material-symbols-outlined text-primary"
-                      style={{ fontSize: "80px", fontVariationSettings: "'FILL' 1" }}
-                    >
-                      verified
-                    </span>
+                    <Image
+                      src="/logo_dark.png"
+                      alt="Thiqah Logo"
+                      width={112}
+                      height={112}
+                      className="w-28 h-28 object-contain"
+                      priority
+                    />
                   </div>
                 </div>
               ) : (
