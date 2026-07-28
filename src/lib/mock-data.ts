@@ -77,7 +77,7 @@ const initialOwnerData: Owner = {
       statusLabel: "يحتاج تحسين",
       complianceScore: 74,
       lastAudit: "أمس",
-      registrationNumber: "1010445566",
+      registrationNumber: "7010445566",
       nationalAddress: "7433 طريق الملك فهد، حي الصحافة، الرياض",
       licenseExpiryDate: "1446/05/20 هـ",
       licenseStatus: "expiring",
