@@ -107,7 +107,10 @@ export default function ProfilePage() {
               </div>
 
               {/* License Expiry */}
-              <div className="p-4 flex items-center justify-between">
+              <button
+                onClick={() => router.push("/notifications")}
+                className="w-full p-4 flex items-center justify-between text-right active:bg-surface-container-high/50 transition-colors"
+              >
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${selectedBusiness?.licenseStatus === "active" ? "bg-primary/10" : "bg-error-container/30"}`}>
                     <span className={`material-symbols-outlined ${selectedBusiness?.licenseStatus === "active" ? "text-primary" : "text-error"}`}>calendar_today</span>
@@ -122,7 +125,7 @@ export default function ProfilePage() {
                     {selectedBusiness?.licenseStatus === "expired" ? "منتهية" : "قرب الانتهاء"}
                   </span>
                 )}
-              </div>
+              </button>
             </div>
           </section>
 

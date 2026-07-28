@@ -232,6 +232,20 @@ export function saveNotifications(notifications: AppNotification[]) {
   }
 }
 
+function normalizeBusiness(business: Business): Business {
+  const fallback =
+    initialOwnerData.businesses.find((b) => b.id === business.id) ??
+    createEmptyBusiness(business.name, business.category, business.region);
+
+  return {
+    ...business,
+    registrationNumber: business.registrationNumber ?? fallback.registrationNumber,
+    nationalAddress: business.nationalAddress ?? fallback.nationalAddress,
+    licenseExpiryDate: business.licenseExpiryDate ?? fallback.licenseExpiryDate,
+    licenseStatus: business.licenseStatus ?? fallback.licenseStatus,
+  };
+}
+
 export function getInitialOwnerData(): Owner {
   if (typeof window === "undefined") {
     return initialOwnerData;
@@ -243,7 +257,11 @@ export function getInitialOwnerData(): Owner {
   }
 
   try {
-    return JSON.parse(savedOwner) as Owner;
+    const parsed = JSON.parse(savedOwner) as Owner;
+    return {
+      ...parsed,
+      businesses: parsed.businesses.map(normalizeBusiness),
+    };
   } catch {
     return initialOwnerData;
   }
