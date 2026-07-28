@@ -23,7 +23,7 @@ export function ThiqahLogo({
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <Image
-        src="/logo.png"
+        src="/logo_dark.png"
         alt="Thiqah Logo"
         width={sizeMap[size].img}
         height={sizeMap[size].img}
