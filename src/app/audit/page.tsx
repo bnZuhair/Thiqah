@@ -1,33 +1,50 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { CircularProgress } from "@/components/shared/circular-progress";
 import { BottomNav } from "@/components/shared/bottom-nav";
-
-const violations = [
-  {
-    id: 1,
-    title: "نظام إطفاء الحريق",
-    severity: "عالية",
-    severityColor: "bg-error text-white",
-    borderColor: "bg-error",
-    date: "منذ يومين",
-    description: "انتهاء صلاحية طفايات الحريق في المستودع الرئيسي (المنطقة ب).",
-  },
-  {
-    id: 2,
-    title: "تراخيص العمل",
-    severity: "متوسطة",
-    severityColor: "bg-tertiary-container text-on-tertiary-fixed-variant",
-    borderColor: "bg-tertiary-container",
-    date: "منذ ٤ أيام",
-    description: "عدم تحديث شهادات التدريب المهني لثلاثة موظفين في القسم الفني.",
-  },
-];
+import { getInitialOwnerData, getSelectedBusinessId, type Business, type Owner } from "@/lib/mock-data";
 
 export default function AuditPage() {
   const router = useRouter();
+  const [owner, setOwner] = useState<Owner | null>(null);
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
+
+  useEffect(() => {
+    const data = getInitialOwnerData();
+    setOwner(data);
+    const selectedId = getSelectedBusinessId(data.businesses[0]?.id);
+    const currentBusiness = data.businesses.find((business) => business.id === selectedId) ?? data.businesses[0];
+    setSelectedBusiness(currentBusiness ?? null);
+  }, []);
+
+  const violations = useMemo(() => {
+    return (selectedBusiness?.violations ?? []).map((violation, index) => ({
+      id: violation.id,
+      title: violation.title,
+      severity: violation.severity,
+      severityColor:
+        violation.severity === "عالية"
+          ? "bg-error text-white"
+          : violation.severity === "متوسطة"
+            ? "bg-tertiary-container text-on-tertiary-fixed-variant"
+            : "bg-primary/10 text-primary",
+      borderColor:
+        violation.severity === "عالية"
+          ? "bg-error"
+          : violation.severity === "متوسطة"
+            ? "bg-tertiary-container"
+            : "bg-primary",
+      date: index === 0 ? "اليوم" : index === 1 ? "غداً" : "أولويات لاحقة",
+      description: violation.description,
+    }));
+  }, [selectedBusiness]);
+
+  const complianceScore = selectedBusiness?.complianceScore ?? 75;
+  const compliantCount = Math.max(0, 12 - violations.length);
+  const reviewCount = violations.length > 0 ? 1 : 0;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -39,13 +56,15 @@ export default function AuditPage() {
           >
             <span className="material-symbols-outlined text-on-surface-variant">arrow_forward</span>
           </button>
-          <span className="text-lg font-semibold text-on-surface">ملخص التدقيق</span>
+          <div className="flex flex-col">
+            <span className="text-lg font-semibold text-on-surface">ملخص التدقيق</span>
+            <span className="text-sm text-on-surface-variant">{selectedBusiness?.name ?? owner?.name ?? "المنشأة"}</span>
+          </div>
         </div>
       </header>
 
       <main className="relative w-full pt-16 pb-24 bg-background min-h-screen">
         <div className="flex flex-col w-full gap-8 p-4">
-          {/* Hero Score Section */}
           <section className="relative overflow-hidden rounded-xl bg-primary-container p-6 flex flex-col items-center justify-center text-center">
             <div className="absolute inset-0 opacity-10 pointer-events-none">
               <svg height="100%" preserveAspectRatio="none" viewBox="0 0 100 100" width="100%">
@@ -59,44 +78,42 @@ export default function AuditPage() {
             </div>
             <div className="relative z-10 flex flex-col items-center">
               <div className="relative w-40 h-40 flex items-center justify-center">
-                <CircularProgress value={75} size={160} strokeWidth={12} />
+                <CircularProgress value={complianceScore} size={160} strokeWidth={12} />
               </div>
               <div className="mt-4 bg-white/10 backdrop-blur-md px-4 py-1 rounded-full">
-                <span className="text-sm text-on-primary">حالة جيدة - يحتاج تحسين</span>
+                <span className="text-sm text-on-primary">{complianceScore >= 80 ? "حالة جيدة" : "يحتاج تحسين"}</span>
               </div>
             </div>
           </section>
 
-          {/* Quick Stats Bento */}
           <section className="grid grid-cols-3 gap-4">
             <div className="bg-surface-container-low p-4 rounded-xl flex flex-col items-center text-center shadow-sm">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
                 <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
               </div>
-              <span className="text-lg font-semibold text-on-surface">12</span>
+              <span className="text-lg font-semibold text-on-surface">{compliantCount}</span>
               <span className="text-xs text-on-surface-variant">مطابق</span>
             </div>
             <div className="bg-surface-container-low p-4 rounded-xl flex flex-col items-center text-center shadow-sm">
               <div className="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center mb-2">
                 <span className="material-symbols-outlined text-error" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
               </div>
-              <span className="text-lg font-semibold text-on-surface">3</span>
+              <span className="text-lg font-semibold text-on-surface">{violations.length}</span>
               <span className="text-xs text-on-surface-variant">مخالف</span>
             </div>
             <div className="bg-surface-container-low p-4 rounded-xl flex flex-col items-center text-center shadow-sm">
               <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center mb-2">
                 <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>pending</span>
               </div>
-              <span className="text-lg font-semibold text-on-surface">1</span>
+              <span className="text-lg font-semibold text-on-surface">{reviewCount}</span>
               <span className="text-xs text-on-surface-variant">مراجعة</span>
             </div>
           </section>
 
-          {/* Violations List */}
           <section className="flex flex-col gap-4">
             <div className="flex items-center justify-between px-1">
               <h2 className="text-lg font-semibold text-on-surface">تفاصيل المخالفات</h2>
-              <span className="text-sm text-primary">عرض الكل</span>
+              <span className="text-sm text-primary">{selectedBusiness?.name ?? "المنشأة"}</span>
             </div>
 
             {violations.map((violation, index) => (
@@ -129,7 +146,6 @@ export default function AuditPage() {
               </motion.div>
             ))}
 
-            {/* Empty state */}
             <div className="mt-4 p-6 rounded-xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center text-center opacity-60">
               <p className="text-sm text-on-surface-variant">
                 لا توجد مخالفات إضافية تحتاج إجراءً فورياً
@@ -137,7 +153,6 @@ export default function AuditPage() {
             </div>
           </section>
 
-          {/* Fixed Bottom Actions */}
           <section className="flex flex-col gap-3 mt-auto">
             <button className="w-full bg-primary text-on-primary h-14 rounded-xl text-lg font-semibold flex items-center justify-center gap-3 shadow-lg active:scale-95 transition-transform">
               <span className="material-symbols-outlined">picture_as_pdf</span>

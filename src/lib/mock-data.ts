@@ -1,3 +1,7 @@
+import { CHECKLIST_ITEMS, STATUS_OVERRIDES } from "./checklist-items";
+
+export type ChecklistStatus = "pending" | "compliant" | "violation";
+
 export interface Violation {
   id: string;
   title: string;
@@ -15,6 +19,7 @@ export interface Business {
   complianceScore: number;
   lastAudit: string;
   violations: Violation[];
+  checklistStatuses: Record<string, ChecklistStatus>;
 }
 
 export interface Owner {
@@ -22,6 +27,24 @@ export interface Owner {
   name: string;
   role: string;
   businesses: Business[];
+}
+
+const OWNER_STORAGE_KEY = "thiqah-mock-owner";
+const SELECTED_BUSINESS_STORAGE_KEY = "thiqah-selected-business-id";
+
+function createEmptyChecklistStatuses() {
+  return CHECKLIST_ITEMS.reduce<Record<string, ChecklistStatus>>((acc, item) => {
+    acc[item.id] = "pending";
+    return acc;
+  }, {});
+}
+
+function createInitialChecklistStatuses() {
+  const statuses = createEmptyChecklistStatuses();
+  Object.entries(STATUS_OVERRIDES).forEach(([itemId, override]) => {
+    statuses[itemId] = override.status;
+  });
+  return statuses;
 }
 
 const initialOwnerData: Owner = {
@@ -53,11 +76,12 @@ const initialOwnerData: Owner = {
           dueDate: "غداً",
         },
       ],
+      checklistStatuses: createInitialChecklistStatuses(),
     },
     {
       id: "business-2",
       name: "شاورما الطعم",
-      category: "سندويتشات",
+      category: "مطعم",
       region: "جدة",
       statusLabel: "مقبول",
       complianceScore: 86,
@@ -71,6 +95,7 @@ const initialOwnerData: Owner = {
           dueDate: "بعد 3 أيام",
         },
       ],
+      checklistStatuses: createInitialChecklistStatuses(),
     },
   ],
 };
@@ -80,7 +105,7 @@ export function getInitialOwnerData(): Owner {
     return initialOwnerData;
   }
 
-  const savedOwner = window.localStorage.getItem("thiqah-mock-owner");
+  const savedOwner = window.localStorage.getItem(OWNER_STORAGE_KEY);
   if (!savedOwner) {
     return initialOwnerData;
   }
@@ -94,6 +119,34 @@ export function getInitialOwnerData(): Owner {
 
 export function saveOwnerData(owner: Owner) {
   if (typeof window !== "undefined") {
-    window.localStorage.setItem("thiqah-mock-owner", JSON.stringify(owner));
+    window.localStorage.setItem(OWNER_STORAGE_KEY, JSON.stringify(owner));
   }
+}
+
+export function getSelectedBusinessId(defaultBusinessId?: string): string {
+  if (typeof window === "undefined") {
+    return defaultBusinessId ?? "";
+  }
+
+  return window.localStorage.getItem(SELECTED_BUSINESS_STORAGE_KEY) ?? defaultBusinessId ?? "";
+}
+
+export function saveSelectedBusinessId(businessId: string) {
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(SELECTED_BUSINESS_STORAGE_KEY, businessId);
+  }
+}
+
+export function createEmptyBusiness(name: string, category: string, region: string): Business {
+  return {
+    id: `business-${Date.now()}`,
+    name,
+    category,
+    region,
+    statusLabel: "غير مطابق",
+    complianceScore: 0,
+    lastAudit: "الآن",
+    violations: [],
+    checklistStatuses: createEmptyChecklistStatuses(),
+  };
 }

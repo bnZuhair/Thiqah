@@ -4,6 +4,8 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { getChecklistItem } from "@/lib/checklist-items";
+import { CHECKLIST_ITEMS } from "@/lib/checklist-items";
+import { getInitialOwnerData, getSelectedBusinessId, saveOwnerData } from "@/lib/mock-data";
 import type { ComplianceAnalysis } from "@/lib/ai/schemas";
 
 type CameraStatus = "requesting" | "ready" | "denied" | "unsupported" | "error";
@@ -130,6 +132,50 @@ function CameraContent() {
         `evaluation:${itemId}`,
         JSON.stringify({ image: dataUrl, analysis, capturedAt: Date.now() })
       );
+
+      const ownerData = getInitialOwnerData();
+      const selectedBusinessId = getSelectedBusinessId(ownerData.businesses[0]?.id);
+      const currentBusiness = ownerData.businesses.find((business) => business.id === selectedBusinessId) ?? ownerData.businesses[0];
+
+      if (currentBusiness) {
+        const updatedChecklistStatuses: Record<string, "pending" | "compliant" | "violation"> = {
+          ...(currentBusiness.checklistStatuses ?? {}),
+          [itemId]: analysis.complianceStatus === "compliant" ? "compliant" : "violation",
+        };
+
+        const compliantCount = Object.values(updatedChecklistStatuses).filter((status) => status === "compliant").length;
+        const nextComplianceScore = Math.round((compliantCount / CHECKLIST_ITEMS.length) * 100);
+
+        const updatedViolations = analysis.complianceStatus === "compliant"
+          ? []
+          : analysis.violations.length > 0
+            ? analysis.violations.map((violation, index) => ({
+                id: `v-${currentBusiness.id}-${index + 1}`,
+                title: violation,
+                severity: (index === 0 ? "عالية" : "متوسطة") as "عالية" | "متوسطة" | "منخفضة",
+                description: violation,
+                dueDate: index === 0 ? "اليوم" : "غداً",
+              }))
+            : currentBusiness.violations;
+
+        const updatedOwner = {
+          ...ownerData,
+          businesses: ownerData.businesses.map((business) =>
+            business.id === currentBusiness.id
+              ? {
+                  ...business,
+                  complianceScore: nextComplianceScore,
+                  statusLabel: nextComplianceScore >= 80 ? "مقبول" : nextComplianceScore >= 50 ? "يحتاج تحسين" : "غير مطابق",
+                  violations: updatedViolations,
+                  checklistStatuses: updatedChecklistStatuses,
+                }
+              : business
+          ),
+        };
+
+        saveOwnerData(updatedOwner);
+      }
+
       router.push(`/evaluation?item=${itemId}`);
     } catch {
       setIsSubmitting(false);

@@ -1,10 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { BottomNav } from "@/components/shared/bottom-nav";
 import { Header } from "@/components/shared/header";
-import { getInitialOwnerData, saveOwnerData, type Business, type Owner } from "@/lib/mock-data";
+import {
+  createEmptyBusiness,
+  getInitialOwnerData,
+  getSelectedBusinessId,
+  saveOwnerData,
+  saveSelectedBusinessId,
+  type Business,
+  type Owner,
+} from "@/lib/mock-data";
 
 interface NewBusinessForm {
   name: string;
@@ -14,11 +23,12 @@ interface NewBusinessForm {
 
 const initialForm: NewBusinessForm = {
   name: "",
-  category: "",
+  category: "مطعم",
   region: "",
 };
 
 export default function HomePage() {
+  const router = useRouter();
   const [owner, setOwner] = useState<Owner | null>(null);
   const [selectedBusinessId, setSelectedBusinessId] = useState<string>("");
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -27,36 +37,29 @@ export default function HomePage() {
   useEffect(() => {
     const data = getInitialOwnerData();
     setOwner(data);
-    setSelectedBusinessId(data.businesses[0]?.id ?? "");
+    const storedBusinessId = getSelectedBusinessId(data.businesses[0]?.id);
+    setSelectedBusinessId(storedBusinessId || data.businesses[0]?.id || "");
   }, []);
 
   const selectedBusiness = useMemo(() => {
     return owner?.businesses.find((business) => business.id === selectedBusinessId) ?? owner?.businesses[0];
   }, [owner, selectedBusinessId]);
 
+  const selectBusiness = (businessId: string) => {
+    setSelectedBusinessId(businessId);
+    saveSelectedBusinessId(businessId);
+  };
+
   const addBusiness = () => {
-    if (!owner || !form.name.trim() || !form.category.trim() || !form.region.trim()) {
+    if (!owner || !form.name.trim() || !form.region.trim()) {
       return;
     }
 
-    const newBusiness: Business = {
-      id: `business-${Date.now()}`,
-      name: form.name.trim(),
-      category: form.category.trim(),
-      region: form.region.trim(),
-      statusLabel: "جديد",
-      complianceScore: 68,
-      lastAudit: "الآن",
-      violations: [
-        {
-          id: `v-${Date.now()}`,
-          title: "إكمال بيانات المنشأة",
-          severity: "متوسطة",
-          description: "أكمل معلومات الرخصة والبيانات الأساسية",
-          dueDate: "خلال 2 أيام",
-        },
-      ],
-    };
+    const newBusiness = createEmptyBusiness(
+      form.name.trim(),
+      form.category.trim() || "مطعم",
+      form.region.trim()
+    );
 
     const updatedOwner: Owner = {
       ...owner,
@@ -65,9 +68,13 @@ export default function HomePage() {
 
     setOwner(updatedOwner);
     saveOwnerData(updatedOwner);
-    setSelectedBusinessId(newBusiness.id);
+    selectBusiness(newBusiness.id);
     setForm(initialForm);
     setShowAddDialog(false);
+  };
+
+  const handleQuickAction = (path: string) => {
+    router.push(path);
   };
 
   if (!owner || !selectedBusiness) {
@@ -114,7 +121,7 @@ export default function HomePage() {
                 return (
                   <button
                     key={business.id}
-                    onClick={() => setSelectedBusinessId(business.id)}
+                    onClick={() => selectBusiness(business.id)}
                     className={`rounded-2xl border p-3 text-right transition-all ${
                       isActive
                         ? "border-primary bg-primary/10"
@@ -177,15 +184,11 @@ export default function HomePage() {
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-3">
-              <button className="rounded-2xl bg-surface-container p-3 text-right">
-                <span className="material-symbols-outlined text-primary">camera_alt</span>
-                <p className="mt-2 text-sm font-semibold text-on-surface">التقاط صورة</p>
-              </button>
-              <button className="rounded-2xl bg-surface-container p-3 text-right">
+              <button onClick={() => handleQuickAction("/audit")} className="rounded-2xl bg-surface-container p-3 text-right">
                 <span className="material-symbols-outlined text-primary">description</span>
                 <p className="mt-2 text-sm font-semibold text-on-surface">تقرير سريع</p>
               </button>
-              <button className="rounded-2xl bg-surface-container p-3 text-right">
+              <button onClick={() => handleQuickAction("/checklist-grouped")} className="rounded-2xl bg-surface-container p-3 text-right">
                 <span className="material-symbols-outlined text-primary">task_alt</span>
                 <p className="mt-2 text-sm font-semibold text-on-surface">مراجعة الاشتراطات</p>
               </button>
@@ -266,17 +269,20 @@ export default function HomePage() {
                     value={form.name}
                     onChange={(event) => setForm({ ...form, name: event.target.value })}
                     className="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-3 text-right text-on-surface"
-                    placeholder="مثال: مقهى الريحان"
+                    placeholder="مثال: مطعم الريحان"
                   />
                 </label>
                 <label className="flex flex-col gap-1 text-sm text-on-surface-variant">
                   النوع
-                  <input
+                  <select
                     value={form.category}
                     onChange={(event) => setForm({ ...form, category: event.target.value })}
                     className="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-3 text-right text-on-surface"
-                    placeholder="مثال: مقهى"
-                  />
+                  >
+                    <option value="مطعم">مطعم</option>
+                    <option value="مقهى" disabled>مقهى (قريباً)</option>
+                    <option value="سوبر ماركت" disabled>سوبر ماركت (قريباً)</option>
+                  </select>
                 </label>
                 <label className="flex flex-col gap-1 text-sm text-on-surface-variant">
                   المنطقة

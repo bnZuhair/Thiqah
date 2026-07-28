@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { BottomNav } from "@/components/shared/bottom-nav";
@@ -12,26 +12,44 @@ import {
   STATUS_OVERRIDES,
   getItemsByCategory,
 } from "@/lib/checklist-items";
+import { getInitialOwnerData, getSelectedBusinessId, type Business, type Owner } from "@/lib/mock-data";
 
 type ItemStatus = "pending" | "compliant" | "violation";
-
-function getStatus(itemId: string): ItemStatus {
-  return STATUS_OVERRIDES[itemId]?.status ?? "pending";
-}
-
-const categoriesWithProgress = CHECKLIST_CATEGORIES.map((category) => {
-  const items = getItemsByCategory(category.id);
-  const compliantCount = items.filter((item) => getStatus(item.id) === "compliant").length;
-  const progress = items.length ? Math.round((compliantCount / items.length) * 100) : 0;
-  return { ...category, items, progress };
-});
-
-const overallCompliant = CHECKLIST_ITEMS.filter((item) => getStatus(item.id) === "compliant").length;
-const overallProgress = Math.round((overallCompliant / CHECKLIST_ITEMS.length) * 100);
 
 export default function ChecklistGroupedPage() {
   const router = useRouter();
   const [openCategory, setOpenCategory] = useState<string | null>(null);
+  const [owner, setOwner] = useState<Owner | null>(null);
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
+
+  useEffect(() => {
+    const data = getInitialOwnerData();
+    setOwner(data);
+    const selectedId = getSelectedBusinessId(data.businesses[0]?.id);
+    const currentBusiness = data.businesses.find((business) => business.id === selectedId) ?? data.businesses[0];
+    setSelectedBusiness(currentBusiness ?? null);
+  }, []);
+
+  const getStatus = (itemId: string): ItemStatus => {
+    return selectedBusiness?.checklistStatuses?.[itemId] ?? STATUS_OVERRIDES[itemId]?.status ?? "pending";
+  };
+
+  const categoriesWithProgress = useMemo(
+    () =>
+      CHECKLIST_CATEGORIES.map((category) => {
+        const items = getItemsByCategory(category.id);
+        const compliantCount = items.filter((item) => getStatus(item.id) === "compliant").length;
+        const progress = items.length ? Math.round((compliantCount / items.length) * 100) : 0;
+        return { ...category, items, progress };
+      }),
+    [selectedBusiness]
+  );
+
+  const overallProgress = useMemo(() => {
+    if (!selectedBusiness) return 0;
+    const compliantCount = CHECKLIST_ITEMS.filter((item) => getStatus(item.id) === "compliant").length;
+    return Math.round((compliantCount / CHECKLIST_ITEMS.length) * 100);
+  }, [selectedBusiness]);
 
   const toggleCategory = (id: string) => {
     setOpenCategory(openCategory === id ? null : id);
@@ -41,7 +59,7 @@ export default function ChecklistGroupedPage() {
     router.push(`/camera?item=${itemId}`);
   };
 
-  const weakestCategory = [...categoriesWithProgress].sort((a, b) => a.progress - b.progress)[0];
+  const weakestCategory = [...categoriesWithProgress].sort((a, b) => a.progress - b.progress)[0] ?? categoriesWithProgress[0];
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -49,12 +67,11 @@ export default function ChecklistGroupedPage() {
 
       <main className="relative w-full pt-16 pb-24 bg-background min-h-screen">
         <div className="flex flex-col w-full gap-8 px-4 pb-8">
-          {/* Header Status Card */}
           <div className="relative overflow-hidden bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(11,93,59,0.05)] p-6">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16" />
             <div className="relative flex items-center justify-between gap-6">
               <div className="flex flex-col gap-1">
-                <span className="text-sm text-on-surface-variant">مطعم البحر</span>
+                <span className="text-sm text-on-surface-variant">{selectedBusiness?.name ?? "المنشأة"}</span>
                 <h1 className="text-xl font-semibold text-primary">حالة الالتزام</h1>
                 <button
                   onClick={() => router.push("/checklist")}
@@ -70,7 +87,26 @@ export default function ChecklistGroupedPage() {
             </div>
           </div>
 
-          {/* Category List */}
+          <div className="rounded-[20px] border border-outline-variant/60 bg-surface-container-lowest p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-on-surface-variant">المخالفات الحالية</p>
+                <p className="text-base font-semibold text-on-surface">{selectedBusiness?.name ?? "المنشأة"}</p>
+              </div>
+              <span className="rounded-full bg-error/10 px-3 py-1 text-sm font-medium text-error">
+                {selectedBusiness?.violations.length ?? 0} مخالفة
+              </span>
+            </div>
+            <div className="mt-3 flex flex-col gap-2">
+              {selectedBusiness?.violations.map((violation) => (
+                <div key={violation.id} className="rounded-xl bg-surface-container p-3">
+                  <p className="text-sm font-semibold text-on-surface">{violation.title}</p>
+                  <p className="mt-1 text-sm text-on-surface-variant">{violation.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-on-surface">الفئات الرقابية</h2>
@@ -183,7 +219,6 @@ export default function ChecklistGroupedPage() {
             ))}
           </div>
 
-          {/* Tip card */}
           <div className="mt-4 flex flex-col items-center justify-center p-8 text-center bg-primary/5 rounded-2xl border-2 border-dashed border-primary/20">
             <div className="w-16 h-16 mb-4 flex items-center justify-center bg-primary-fixed rounded-full">
               <span className="material-symbols-outlined text-primary text-[32px]">tips_and_updates</span>

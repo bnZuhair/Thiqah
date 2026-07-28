@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { BottomNav } from "@/components/shared/bottom-nav";
 import { Header } from "@/components/shared/header";
 import { ProgressBar } from "@/components/shared/progress-bar";
 import { CHECKLIST_ITEMS, STATUS_OVERRIDES } from "@/lib/checklist-items";
+import { getInitialOwnerData, getSelectedBusinessId, type Business, type Owner } from "@/lib/mock-data";
 
 interface ChecklistItem {
   id: string;
@@ -17,18 +18,34 @@ interface ChecklistItem {
   statusText?: string;
 }
 
-const initialItems: ChecklistItem[] = CHECKLIST_ITEMS.map((item) => ({
-  ...item,
-  status: STATUS_OVERRIDES[item.id]?.status ?? "pending",
-  statusText: STATUS_OVERRIDES[item.id]?.statusText,
-}));
-
 export default function ChecklistPage() {
   const router = useRouter();
-  const [items, setItems] = useState< ChecklistItem[]>(initialItems);
+  const [owner, setOwner] = useState<Owner | null>(null);
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [showHint, setShowHint] = useState(false);
 
-  const completedCount = items.filter((i) => i.status === "compliant").length;
+  useEffect(() => {
+    const data = getInitialOwnerData();
+    setOwner(data);
+    const selectedId = getSelectedBusinessId(data.businesses[0]?.id);
+    const currentBusiness = data.businesses.find((business) => business.id === selectedId) ?? data.businesses[0];
+    setSelectedBusiness(currentBusiness ?? null);
+  }, []);
+
+  const items = useMemo(
+    () =>
+      CHECKLIST_ITEMS.map((item) => {
+        const status = selectedBusiness?.checklistStatuses?.[item.id] ?? STATUS_OVERRIDES[item.id]?.status ?? "pending";
+        return {
+          ...item,
+          status,
+          statusText: STATUS_OVERRIDES[item.id]?.statusText,
+        };
+      }),
+    [selectedBusiness]
+  );
+
+  const progressCount = items.filter((i) => i.status === "compliant").length;
 
   const handleCapture = (id: string) => {
     router.push(`/camera?item=${id}`);
@@ -40,11 +57,10 @@ export default function ChecklistPage() {
 
       <main className="relative w-full pt-16 pb-24 bg-background min-h-screen">
         <div className="flex flex-col w-full px-4 gap-8">
-          {/* Header & Progress */}
           <div className="flex flex-col gap-4 mt-4">
             <div className="flex justify-between items-end">
               <div className="flex flex-col">
-                <span className="text-sm text-on-surface-variant">المتجر: مطعم البحر</span>
+                <span className="text-sm text-on-surface-variant">المتجر: {selectedBusiness?.name ?? "المنشأة"}</span>
                 <h1 className="text-2xl font-bold text-primary">قائمة الاشتراطات</h1>
               </div>
               <button
@@ -57,13 +73,32 @@ export default function ChecklistPage() {
             </div>
 
             <ProgressBar
-              current={completedCount}
+              current={progressCount}
               total={items.length}
-              label={`تبقت ${items.length - completedCount} خطوة لإتمام عملية التدقيق بنجاح`}
+              label={`تبقت ${items.length - progressCount} خطوة لإتمام عملية التدقيق بنجاح`}
             />
           </div>
 
-          {/* Checklist Items */}
+          <div className="rounded-[20px] border border-outline-variant/60 bg-surface-container-lowest p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-on-surface-variant">المخالفات الحالية</p>
+                <p className="text-base font-semibold text-on-surface">{selectedBusiness?.name ?? "المنشأة"}</p>
+              </div>
+              <span className="rounded-full bg-error/10 px-3 py-1 text-sm font-medium text-error">
+                {selectedBusiness?.violations.length ?? 0} مخالفة
+              </span>
+            </div>
+            <div className="mt-3 flex flex-col gap-2">
+              {selectedBusiness?.violations.map((violation) => (
+                <div key={violation.id} className="rounded-xl bg-surface-container p-3">
+                  <p className="text-sm font-semibold text-on-surface">{violation.title}</p>
+                  <p className="mt-1 text-sm text-on-surface-variant">{violation.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="flex flex-col gap-4 pb-8">
             {items.map((item, index) => (
               <motion.div
@@ -75,7 +110,6 @@ export default function ChecklistPage() {
                   item.status === "pending" ? "opacity-80" : ""
                 }`}
               >
-                {/* Status stripe */}
                 <div className={`absolute right-0 top-0 w-1 h-full ${
                   item.status === "compliant"
                     ? "bg-primary"
@@ -136,7 +170,6 @@ export default function ChecklistPage() {
                   )}
                 </div>
 
-                {/* Action buttons */}
                 {item.status === "pending" && (
                   <button
                     onClick={() => handleCapture(item.id)}
@@ -172,7 +205,6 @@ export default function ChecklistPage() {
         </div>
       </main>
 
-      {/* Hint bubble */}
       <AnimatePresence>
         {!showHint && (
           <motion.div
